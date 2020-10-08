@@ -87,7 +87,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 		thumbDir := filepath.Join(filepath.Dir(path), ".deovr")
 		thumbPath := filepath.Join(thumbDir, fileName+".png")
 
-		if _, err := os.Stat(thumbPath); os.IsNotExist(err) {
+		if tinfo, err := os.Stat(thumbPath); os.IsNotExist(err) || info.ModTime().After(tinfo.ModTime()) {
 			log.Printf("[%s] Generating video thumbnail: %s", scene.Name, path)
 			thumbData, err := ffmpeg.GenerateVideoThumbnail(path, videoData.Duration/2, int(250.0*videoData.ScreenRatio), 250)
 			if err != nil {

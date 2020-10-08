@@ -11,9 +11,25 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rafaelmartins/deovr-library/deovr"
+	"github.com/rafaelmartins/deovr-library/gallery"
 )
 
 var data = &deovr.DeoVR{}
+
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	if err := gallery.Index(w, data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func SceneHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	if s := data.GetSceneByName(vars["scene"]); s == nil {
+		http.NotFound(w, r)
+	} else if err := gallery.Scene(w, s); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
 
 func DeoVRHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(data)
@@ -28,24 +44,20 @@ func DeoVRHandler(w http.ResponseWriter, r *http.Request) {
 
 func VideoHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	f, err := data.GetVideoPath(vars["scene"], vars["file"])
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, "file not found\n")
-		return
+	if f, err := data.GetVideoPath(vars["scene"], vars["file"]); err != nil {
+		http.NotFound(w, r)
+	} else {
+		http.ServeFile(w, r, f)
 	}
-	http.ServeFile(w, r, f)
 }
 
 func ThumbHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	f, err := data.GetVideoThumbnailPath(vars["scene"], vars["file"])
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, "file not found\n")
-		return
+	if f, err := data.GetVideoThumbnailPath(vars["scene"], vars["file"]); err != nil {
+		http.NotFound(w, r)
+	} else {
+		http.ServeFile(w, r, f)
 	}
-	http.ServeFile(w, r, f)
 }
 
 func usage() {
@@ -82,11 +94,13 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+	r.HandleFunc("/", IndexHandler)
 	r.HandleFunc("/deovr", DeoVRHandler)
+	r.HandleFunc("/scene/{scene}", SceneHandler)
 	r.HandleFunc("/video/{scene}/{file}", VideoHandler)
 	r.HandleFunc("/thumb/{scene}/{file}", ThumbHandler)
 
-	fmt.Fprintf(os.Stderr, "\n * Running on http://%s/deovr\n\n", os.Args[1])
+	fmt.Fprintf(os.Stderr, "\n * Running on http://%s/\n\n", os.Args[1])
 
 	if err := http.ListenAndServe(os.Args[1], handlers.LoggingHandler(os.Stderr, r)); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)

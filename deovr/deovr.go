@@ -145,14 +145,20 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 	return nil
 }
 
-func (d *DeoVR) getSceneDirectory(sceneName string) string {
-	dir := ""
+func (d *DeoVR) GetSceneByName(sceneName string) *Scene {
 	for _, scene := range d.Scenes {
 		if scene.Name == sceneName {
-			dir = scene.dir
+			return scene
 		}
 	}
-	return dir
+	return nil
+}
+
+func (d *DeoVR) getSceneDirectory(sceneName string) string {
+	if s := d.GetSceneByName(sceneName); s != nil {
+		return s.dir
+	}
+	return ""
 }
 
 func (d *DeoVR) GetVideoPath(sceneName string, fileName string) (string, error) {

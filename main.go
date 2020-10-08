@@ -88,5 +88,7 @@ func main() {
 
 	fmt.Fprintf(os.Stderr, "\n * Running on http://%s/deovr\n\n", os.Args[1])
 
-	http.ListenAndServe(os.Args[1], handlers.LoggingHandler(os.Stderr, r))
+	if err := http.ListenAndServe(os.Args[1], handlers.LoggingHandler(os.Stderr, r)); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+	}
 }

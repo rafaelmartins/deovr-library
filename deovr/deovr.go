@@ -1,6 +1,7 @@
 package deovr
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -76,28 +77,54 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			return nil
 		}
 
-		log.Printf("[%s] Processing video: %s", scene.Name, path)
-		videoData, err := ffmpeg.ProbeVideo(path)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %s: %s\n", path, err)
-			return nil
+		fileName := filepath.Base(path)
+		deovrDir := filepath.Join(filepath.Dir(path), ".deovr")
+		if _, err := os.Stat(deovrDir); os.IsNotExist(err) {
+			if err := os.MkdirAll(deovrDir, 0777); err != nil {
+				return err
+			}
 		}
 
-		fileName := filepath.Base(path)
-		thumbDir := filepath.Join(filepath.Dir(path), ".deovr")
-		thumbPath := filepath.Join(thumbDir, fileName+".png")
+		log.Printf("[%s] Processing video: %s", scene.Name, path)
 
+		var videoData *ffmpeg.ProbeVideoData
+		dataPath := filepath.Join(deovrDir, fileName+".json")
+		if tinfo, err := os.Stat(dataPath); os.IsNotExist(err) || info.ModTime().After(tinfo.ModTime()) {
+			log.Printf("[%s] Generating video data: %s", scene.Name, path)
+			var err error
+			videoData, err = ffmpeg.ProbeVideo(path)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %s: %s\n", path, err)
+				return nil
+			}
+
+			f, err := os.Create(dataPath)
+			if err != nil {
+				return err
+			}
+
+			if err := json.NewEncoder(f).Encode(videoData); err != nil {
+				return err
+			}
+		} else {
+			f, err := os.Open(dataPath)
+			if err != nil {
+				return err
+			}
+
+			videoData = &ffmpeg.ProbeVideoData{}
+			if err := json.NewDecoder(f).Decode(videoData); err != nil {
+				return err
+			}
+		}
+
+		thumbPath := filepath.Join(deovrDir, fileName+".png")
 		if tinfo, err := os.Stat(thumbPath); os.IsNotExist(err) || info.ModTime().After(tinfo.ModTime()) {
 			log.Printf("[%s] Generating video thumbnail: %s", scene.Name, path)
 			thumbData, err := ffmpeg.GenerateVideoThumbnail(path, videoData.Duration/2, int(250.0*videoData.ScreenRatio), 250)
 			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %s: %s\n", path, err)
 				return nil
-			}
-
-			if _, err := os.Stat(thumbDir); os.IsNotExist(err) {
-				if err := os.MkdirAll(thumbDir, 0777); err != nil {
-					return err
-				}
 			}
 
 			if err := ioutil.WriteFile(thumbPath, thumbData, 0666); err != nil {

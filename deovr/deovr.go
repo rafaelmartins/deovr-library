@@ -151,7 +151,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 		thumbPath := filepath.Join(deovrDir, fileName+".png")
 		if tinfo, err := os.Stat(thumbPath); os.IsNotExist(err) || info.ModTime().After(tinfo.ModTime()) {
 			log.Printf("[%s] Generating video thumbnail: %s", scene.Name, path)
-			snapshot, err := ffmpeg.GenerateVideoSnapshot(path, videoData.Duration/2)
+			snapshot, err := ffmpeg.GenerateVideoSnapshot(path, videoData.Duration/2, 250)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: snapshot: %s: %s\n", path, err)
 				return nil

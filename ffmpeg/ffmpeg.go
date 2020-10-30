@@ -111,15 +111,15 @@ func ProbeVideo(videoPath string) (*ProbeVideoData, error) {
 	}, nil
 }
 
-func GenerateVideoSnapshot(videoPath string, time int) ([]byte, error) {
+func GenerateVideoSnapshot(videoPath string, time int, width int) ([]byte, error) {
 	cmd := exec.Command(
 		"ffmpeg",
 		"-ss", strconv.Itoa(time),
 		"-i", videoPath,
-		"-vf", "thumbnail",
-		"-frames:v", "1",
 		"-f", "image2pipe",
-		"-c:v", "png",
+		"-vframes", "1",
+		"-vf", fmt.Sprintf("scale=%d:-1", width),
+		"-c", "png",
 		"pipe:1",
 	)
 	return cmd.Output()

@@ -96,7 +96,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			thumbPath := filepath.Join(deovrDir, fileName)
 			if tinfo, err := os.Stat(thumbPath); os.IsNotExist(err) || info.ModTime().After(tinfo.ModTime()) {
 				log.Printf("[%s] Generating image thumbnail: %s", scene.Name, path)
-				thumbData, err := imagemagick.GenerateImageThumbnail(path, 250, 250)
+				thumbData, err := imagemagick.GenerateThumbnail(path, nil, 250, 141)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %s: %s\n", path, err)
 					return nil
@@ -151,7 +151,13 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 		thumbPath := filepath.Join(deovrDir, fileName+".png")
 		if tinfo, err := os.Stat(thumbPath); os.IsNotExist(err) || info.ModTime().After(tinfo.ModTime()) {
 			log.Printf("[%s] Generating video thumbnail: %s", scene.Name, path)
-			thumbData, err := ffmpeg.GenerateVideoThumbnail(path, videoData.Duration/2, int(250.0*videoData.ScreenRatio), 250)
+			snapshot, err := ffmpeg.GenerateVideoSnapshot(path, videoData.Duration/2)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %s: %s\n", path, err)
+				return nil
+			}
+
+			thumbData, err := imagemagick.GenerateThumbnail("-", snapshot, 250, 141)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %s: %s\n", path, err)
 				return nil

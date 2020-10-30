@@ -111,7 +111,7 @@ func ProbeVideo(videoPath string) (*ProbeVideoData, error) {
 	}, nil
 }
 
-func GenerateVideoThumbnail(videoPath string, time int, width int, height int) ([]byte, error) {
+func GenerateVideoSnapshot(videoPath string, time int) ([]byte, error) {
 	cmd := exec.Command(
 		"ffmpeg",
 		"-ss", strconv.Itoa(time),
@@ -119,7 +119,6 @@ func GenerateVideoThumbnail(videoPath string, time int, width int, height int) (
 		"-vf", "thumbnail",
 		"-frames:v", "1",
 		"-f", "image2pipe",
-		"-s", fmt.Sprintf("%dx%d", width, height),
 		"-c:v", "png",
 		"pipe:1",
 	)

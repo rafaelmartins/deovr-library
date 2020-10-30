@@ -44,7 +44,11 @@ func Scene(w io.Writer, s *deovr.Scene) error {
 <h1>Scene: {{.Name}}</h1>
 <ul>
 {{- range .List}}
+{{- if .Encodings}}
 <li><a href="{{(index (index .Encodings 0).VideoSources 0).URL}}">{{.Title}}</a></li>
+{{- else}}
+<li><a href="{{.Path}}">{{.Title}}</a></li>
+{{- end}}
 {{- end}}
 </ul>
 </body>

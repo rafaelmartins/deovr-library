@@ -42,9 +42,9 @@ func DeoVRHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func VideoHandler(w http.ResponseWriter, r *http.Request) {
+func MediaHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	if f, err := data.GetVideoPath(vars["scene"], vars["file"]); err != nil {
+	if f, err := data.GetMediaPath(vars["scene"], vars["file"]); err != nil {
 		http.NotFound(w, r)
 	} else {
 		http.ServeFile(w, r, f)
@@ -53,7 +53,7 @@ func VideoHandler(w http.ResponseWriter, r *http.Request) {
 
 func ThumbHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	if f, err := data.GetVideoThumbnailPath(vars["scene"], vars["file"]); err != nil {
+	if f, err := data.GetThumbnailPath(vars["scene"], vars["file"]); err != nil {
 		http.NotFound(w, r)
 	} else {
 		http.ServeFile(w, r, f)
@@ -97,7 +97,7 @@ func main() {
 	r.HandleFunc("/", IndexHandler)
 	r.HandleFunc("/deovr", DeoVRHandler)
 	r.HandleFunc("/scene/{scene}", SceneHandler)
-	r.HandleFunc("/video/{scene}/{file}", VideoHandler)
+	r.HandleFunc("/media/{scene}/{file}", MediaHandler)
 	r.HandleFunc("/thumb/{scene}/{file}", ThumbHandler)
 
 	fmt.Fprintf(os.Stderr, "\n * Running on http://%s/\n\n", os.Args[1])

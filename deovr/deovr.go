@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/rafaelmartins/deovr-library/ffmpeg"
+	"github.com/rafaelmartins/deovr-library/imagemagick"
 )
 
 type VideoSource struct {
@@ -26,21 +27,22 @@ type Encoding struct {
 	VideoSources []*VideoSource `json:"videoSources"`
 }
 
-type Video struct {
+type Media struct {
 	ID           int         `json:"id,omitempty"`
 	Title        string      `json:"title"`
-	FPS          int         `json:"fps"`
-	Is3D         bool        `json:"is3d"`
+	ThumbnailURL string      `json:"thumbnailUrl"`
+	FPS          int         `json:"fps,omitempty"`
+	Is3D         bool        `json:"is3d,omitempty"`
 	ViewAngle    int         `json:"viewAngle,omitempty"`
 	StereoMode   string      `json:"stereoMode,omitempty"`
-	VideoLength  int         `json:"videoLength"`
-	ThumbnailURL string      `json:"thumbnailUrl"`
-	Encodings    []*Encoding `json:"encodings"`
+	VideoLength  int         `json:"videoLength,omitempty"`
+	Encodings    []*Encoding `json:"encodings,omitempty"`
+	Path         string      `json:"path,omitempty"`
 }
 
 type Scene struct {
 	Name string   `json:"name"`
-	List []*Video `json:"list"`
+	List []*Media `json:"list"`
 	dir  string
 }
 
@@ -73,7 +75,10 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			return nil
 		}
 
-		if !strings.HasPrefix(mime.TypeByExtension(filepath.Ext(path)), "video/") {
+		mtype := mime.TypeByExtension(filepath.Ext(path))
+		isVideo := strings.HasPrefix(mtype, "video/")
+		isImage := strings.HasPrefix(mtype, "image/")
+		if !(isVideo || isImage) {
 			return nil
 		}
 
@@ -85,8 +90,33 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			}
 		}
 
-		log.Printf("[%s] Processing video: %s", scene.Name, path)
+		if isImage {
+			log.Printf("[%s] Processing image: %s", scene.Name, path)
 
+			thumbPath := filepath.Join(deovrDir, fileName)
+			if tinfo, err := os.Stat(thumbPath); os.IsNotExist(err) || info.ModTime().After(tinfo.ModTime()) {
+				log.Printf("[%s] Generating image thumbnail: %s", scene.Name, path)
+				thumbData, err := imagemagick.GenerateImageThumbnail(path, 250, 250)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %s: %s\n", path, err)
+					return nil
+				}
+
+				if err := ioutil.WriteFile(thumbPath, thumbData, 0666); err != nil {
+					return err
+				}
+			}
+
+			image := &Media{
+				Title:        fileName,
+				ThumbnailURL: fmt.Sprintf("http://%s/thumb/%s/%s", host, name, fileName),
+				Path:         fmt.Sprintf("http://%s/media/%s/%s", host, name, fileName),
+			}
+			scene.List = append(scene.List, image)
+			return nil
+		}
+
+		log.Printf("[%s] Processing video: %s", scene.Name, path)
 		var videoData *ffmpeg.ProbeVideoData
 		dataPath := filepath.Join(deovrDir, fileName+".json")
 		if tinfo, err := os.Stat(dataPath); os.IsNotExist(err) || info.ModTime().After(tinfo.ModTime()) {
@@ -132,7 +162,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			}
 		}
 
-		video := &Video{
+		video := &Media{
 			Title:        fileName,
 			FPS:          videoData.FramesPerSecond,
 			VideoLength:  videoData.Duration,
@@ -145,7 +175,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 							Resolution: videoData.Height,
 							Height:     videoData.Height,
 							Width:      videoData.Width,
-							URL:        fmt.Sprintf("http://%s/video/%s/%s", host, name, filepath.Base(path)),
+							URL:        fmt.Sprintf("http://%s/media/%s/%s", host, name, fileName),
 						},
 					},
 				},
@@ -188,7 +218,7 @@ func (d *DeoVR) getSceneDirectory(sceneName string) string {
 	return ""
 }
 
-func (d *DeoVR) GetVideoPath(sceneName string, fileName string) (string, error) {
+func (d *DeoVR) GetMediaPath(sceneName string, fileName string) (string, error) {
 	dir := d.getSceneDirectory(sceneName)
 	f := filepath.Join(dir, fileName)
 	if _, err := os.Stat(f); err != nil {
@@ -197,7 +227,7 @@ func (d *DeoVR) GetVideoPath(sceneName string, fileName string) (string, error) 
 	return f, nil
 }
 
-func (d *DeoVR) GetVideoThumbnailPath(sceneName string, fileName string) (string, error) {
+func (d *DeoVR) GetThumbnailPath(sceneName string, fileName string) (string, error) {
 	dir := d.getSceneDirectory(sceneName)
 	f := filepath.Join(dir, ".deovr", fileName)
 	if _, err := os.Stat(f); err != nil {

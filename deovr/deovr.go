@@ -174,10 +174,10 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			VideoLength:  videoData.Duration,
 			ThumbnailURL: fmt.Sprintf("http://%s/thumb/%s/%s.png", host, name, fileName),
 			Encodings: []*Encoding{
-				&Encoding{
+				{
 					Name: videoData.CodecName,
 					VideoSources: []*VideoSource{
-						&VideoSource{
+						{
 							Resolution: videoData.Height,
 							Height:     videoData.Height,
 							Width:      videoData.Width,
@@ -188,10 +188,32 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			},
 		}
 
-		if videoData.ScreenRatio > (16.0 / 9.0) {
+		// silly heuristics to detect 3d mode
+		a180 := strings.Contains(fileName, "_180")
+		a360 := strings.Contains(fileName, "_360")
+		h := strings.Contains(fileName, "_3dh")
+		v := strings.Contains(fileName, "_3dv")
+		sbs := strings.Contains(fileName, "_SBS")
+		lr := strings.Contains(fileName, "_LR")
+		tb := strings.Contains(fileName, "_TB")
+		ou := strings.Contains(fileName, "_OverUnder")
+		if a180 || a360 || h || v || sbs || lr || tb || ou {
 			video.Is3D = true
 			video.ViewAngle = 180
 			video.StereoMode = "sbs"
+			if a360 {
+				video.ViewAngle = 360
+			}
+			if v || tb || ou {
+				video.StereoMode = "tb"
+			}
+		}
+		if !video.Is3D {
+			if videoData.ScreenRatio > (16.0 / 9.0) {
+				video.Is3D = true
+				video.ViewAngle = 180
+				video.StereoMode = "sbs"
+			}
 		}
 
 		scene.List = append(scene.List, video)

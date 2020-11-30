@@ -10,8 +10,8 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/rafaelmartins/deovr-library/deovr"
-	"github.com/rafaelmartins/deovr-library/gallery"
+	"github.com/rafaelmartins/deovr-library/internal/deovr"
+	"github.com/rafaelmartins/deovr-library/internal/gallery"
 )
 
 var data = &deovr.DeoVR{}

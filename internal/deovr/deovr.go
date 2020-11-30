@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rafaelmartins/deovr-library/ffmpeg"
-	"github.com/rafaelmartins/deovr-library/imagemagick"
+	"github.com/rafaelmartins/deovr-library/internal/ffmpeg"
+	"github.com/rafaelmartins/deovr-library/internal/imagemagick"
 )
 
 type VideoSource struct {

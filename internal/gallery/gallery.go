@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"io"
 
-	"github.com/rafaelmartins/deovr-library/deovr"
+	"github.com/rafaelmartins/deovr-library/internal/deovr"
 )
 
 func Index(w io.Writer, d *deovr.DeoVR) error {

@@ -13,7 +13,7 @@ func Index(w io.Writer, d *deovr.DeoVR) error {
 		return errors.New("DeoVR is nil")
 	}
 
-	t, err := template.New("index").Parse(`
+	t, err := template.New("index").Parse(`<!DOCTYPE html>
 <html>
 <body>
 <h1>Scenes</h1>
@@ -38,16 +38,30 @@ func Scene(w io.Writer, s *deovr.Scene) error {
 	}
 
 	// FIXME: show thumbnails
-	t, err := template.New("scene").Parse(`
+	t, err := template.New("scene").Parse(`<!DOCTYPE html>
 <html>
 <body>
 <h1>Scene: {{.Name}}</h1>
 <ul>
 {{- range .List}}
 {{- if .Encodings}}
-<li><a href="{{(index (index .Encodings 0).VideoSources 0).URL}}">{{.Title}}</a></li>
+<li>
+<a href="{{(index (index .Encodings 0).VideoSources 0).URL}}">
+{{- if .ThumbnailURL}}
+<img src="{{.ThumbnailURL}}">
+{{- end}}
+{{.Title}}
+</a>
+</li>
 {{- else}}
-<li><a href="{{.Path}}">{{.Title}}</a></li>
+<li>
+<a href="{{.Path}}">
+{{- if .ThumbnailURL}}
+<img src="{{.ThumbnailURL}}">
+{{- end}}
+{{.Title}}
+</a>
+</li>
 {{- end}}
 {{- end}}
 </ul>

@@ -118,7 +118,7 @@ func GenerateVideoSnapshot(videoPath string, time int, width int) ([]byte, error
 		"-i", videoPath,
 		"-f", "image2pipe",
 		"-vframes", "1",
-		"-vf", fmt.Sprintf("scale=%d:-1", width),
+		"-vf", fmt.Sprintf("scale=%d:-2", width),
 		"-c", "png",
 		"pipe:1",
 	)

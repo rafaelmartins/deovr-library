@@ -32,14 +32,10 @@ func SceneHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeoVRHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func MediaHandler(w http.ResponseWriter, r *http.Request) {

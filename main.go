@@ -16,13 +16,13 @@ import (
 
 var data = &deovr.DeoVR{}
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
+func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if err := gallery.Index(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func SceneHandler(w http.ResponseWriter, r *http.Request) {
+func sceneHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if s := data.GetSceneByName(vars["scene"]); s == nil {
 		http.NotFound(w, r)
@@ -31,14 +31,14 @@ func SceneHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func DeoVRHandler(w http.ResponseWriter, r *http.Request) {
+func deoVRHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func MediaHandler(w http.ResponseWriter, r *http.Request) {
+func mediaHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if f, err := data.GetMediaPath(vars["scene"], vars["file"]); err != nil {
 		http.NotFound(w, r)
@@ -47,7 +47,7 @@ func MediaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ThumbHandler(w http.ResponseWriter, r *http.Request) {
+func thumbHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if f, err := data.GetThumbnailPath(vars["scene"], vars["file"]); err != nil {
 		http.NotFound(w, r)
@@ -93,11 +93,11 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", IndexHandler)
-	r.HandleFunc("/deovr", DeoVRHandler)
-	r.HandleFunc("/scene/{scene}", SceneHandler)
-	r.HandleFunc("/media/{scene}/{file}", MediaHandler)
-	r.HandleFunc("/thumb/{scene}/{file}", ThumbHandler)
+	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/deovr", deoVRHandler)
+	r.HandleFunc("/scene/{scene}", sceneHandler)
+	r.HandleFunc("/media/{scene}/{file}", mediaHandler)
+	r.HandleFunc("/thumb/{scene}/{file}", thumbHandler)
 
 	fmt.Fprintf(os.Stderr, "\n * Running on http://%s/\n\n", os.Args[1])
 

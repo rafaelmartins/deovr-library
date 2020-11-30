@@ -66,13 +66,16 @@ func main() {
 		usage()
 	}
 
-	pieces := strings.Split(os.Args[1], ":")
+	addr := os.Args[1]
+	pieces := strings.Split(addr, ":")
 	if pieces[0] == "" {
 		fmt.Fprintf(os.Stderr, "Error: hostname required for URL generation\n\n")
 		usage()
 	}
 
-	if _, err := strconv.Atoi(pieces[1]); err != nil {
+	if len(pieces) == 1 {
+		addr += ":80"
+	} else if _, err := strconv.Atoi(pieces[1]); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: port must be an integer\n\n")
 		usage()
 	}
@@ -98,7 +101,7 @@ func main() {
 
 	fmt.Fprintf(os.Stderr, "\n * Running on http://%s/\n\n", os.Args[1])
 
-	if err := http.ListenAndServe(os.Args[1], handlers.LoggingHandler(os.Stderr, r)); err != nil {
+	if err := http.ListenAndServe(addr, handlers.LoggingHandler(os.Stderr, r)); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 	}
 }

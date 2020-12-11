@@ -190,6 +190,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 
 		// silly heuristics to detect 3d mode
 		a180 := strings.Contains(fileName, "_180")
+		a200 := strings.Contains(fileName, "_MKX200")
 		a360 := strings.Contains(fileName, "_360")
 		h := strings.Contains(fileName, "_3dh")
 		v := strings.Contains(fileName, "_3dv")
@@ -197,11 +198,13 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 		lr := strings.Contains(fileName, "_LR")
 		tb := strings.Contains(fileName, "_TB")
 		ou := strings.Contains(fileName, "_OverUnder")
-		if a180 || a360 || h || v || sbs || lr || tb || ou {
+		if a180 || a200 || a360 || h || v || sbs || lr || tb || ou {
 			video.Is3D = true
 			video.ViewAngle = 180
 			video.StereoMode = "sbs"
-			if a360 {
+			if a200 {
+				video.ViewAngle = 200
+			} else if a360 {
 				video.ViewAngle = 360
 			}
 			if v || tb || ou {

@@ -35,7 +35,6 @@ type Media struct {
 	Is3D         bool        `json:"is3d,omitempty"`
 	ViewAngle    int         `json:"viewAngle,omitempty"`
 	StereoMode   string      `json:"stereoMode,omitempty"`
-	ScreenType   string      `json:"screenType,omitempty"`
 	VideoLength  int         `json:"videoLength,omitempty"`
 	Encodings    []*Encoding `json:"encodings,omitempty"`
 	Path         string      `json:"path,omitempty"`
@@ -191,25 +190,22 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 
 		// silly heuristics to detect 3d mode
 		a180 := strings.Contains(fileName, "_180")
+		a200 := strings.Contains(fileName, "_MKX200")
 		a360 := strings.Contains(fileName, "_360")
-		mkx200 := strings.Contains(fileName, "_MKX200")
 		h := strings.Contains(fileName, "_3dh")
 		v := strings.Contains(fileName, "_3dv")
 		sbs := strings.Contains(fileName, "_SBS")
 		lr := strings.Contains(fileName, "_LR")
 		tb := strings.Contains(fileName, "_TB")
 		ou := strings.Contains(fileName, "_OverUnder")
-		if a180 || mkx200 || a360 || h || v || sbs || lr || tb || ou {
+		if a180 || a200 || a360 || h || v || sbs || lr || tb || ou {
 			video.Is3D = true
 			video.ViewAngle = 180
 			video.StereoMode = "sbs"
-			video.ScreenType = "dome"
-			if mkx200 {
+			if a200 {
 				video.ViewAngle = 200
-				video.ScreenType = "fisheye"
 			} else if a360 {
 				video.ViewAngle = 360
-				video.ScreenType = "sphere"
 			}
 			if v || tb || ou {
 				video.StereoMode = "tb"

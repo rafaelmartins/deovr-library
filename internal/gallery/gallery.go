@@ -65,6 +65,16 @@ func Scene(w io.Writer, s *deovr.Scene) error {
 {{- end}}
 {{- end}}
 </ul>
+{{- if .ListNonMedia}}
+<h2>Non-media files</h2>
+<ul>
+{{- range .ListNonMedia}}
+<li>
+<a href="{{.Path}}">{{.Title}}</a>
+</li>
+{{- end}}
+</ul>
+{{- end}}
 </body>
 </html>
 `)

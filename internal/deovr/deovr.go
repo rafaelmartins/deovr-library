@@ -40,10 +40,16 @@ type Media struct {
 	Path         string      `json:"path,omitempty"`
 }
 
+type NonMedia struct {
+	Title string
+	Path  string
+}
+
 type Scene struct {
-	Name string   `json:"name"`
-	List []*Media `json:"list"`
-	dir  string
+	Name         string      `json:"name"`
+	List         []*Media    `json:"list"`
+	ListNonMedia []*NonMedia `json:"-"`
+	dir          string
 }
 
 type DeoVR struct {
@@ -75,14 +81,19 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			return nil
 		}
 
+		fileName := filepath.Base(path)
 		mtype := mime.TypeByExtension(filepath.Ext(path))
 		isVideo := strings.HasPrefix(mtype, "video/")
 		isImage := strings.HasPrefix(mtype, "image/")
 		if !(isVideo || isImage) {
+			nm := &NonMedia{
+				Title: fileName,
+				Path:  fmt.Sprintf("http://%s/media/%s/%s", host, name, fileName),
+			}
+			scene.ListNonMedia = append(scene.ListNonMedia, nm)
 			return nil
 		}
 
-		fileName := filepath.Base(path)
 		deovrDir := filepath.Join(filepath.Dir(path), ".deovr")
 		if _, err := os.Stat(deovrDir); os.IsNotExist(err) {
 			if err := os.MkdirAll(deovrDir, 0777); err != nil {

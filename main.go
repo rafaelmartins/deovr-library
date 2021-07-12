@@ -31,6 +31,26 @@ func sceneHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func zipHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	s := data.GetSceneByName(vars["scene"])
+	if s == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if len(s.ListNonMedia) == 0 {
+		http.NotFound(w, r)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.zip"`, vars["scene"]))
+	if err := s.WriteNonMediaZip(w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func deoVRHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(data); err != nil {
@@ -95,6 +115,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/deovr", deoVRHandler)
+	r.HandleFunc("/scene/{scene}.zip", zipHandler)
 	r.HandleFunc("/scene/{scene}", sceneHandler)
 	r.HandleFunc("/media/{scene}/{file}", mediaHandler)
 	r.HandleFunc("/thumb/{scene}/{file}", thumbHandler)

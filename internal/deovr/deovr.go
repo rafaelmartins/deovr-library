@@ -1,8 +1,10 @@
 package deovr
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -46,10 +48,11 @@ type NonMedia struct {
 }
 
 type Scene struct {
-	Name         string      `json:"name"`
-	List         []*Media    `json:"list"`
-	ListNonMedia []*NonMedia `json:"-"`
-	dir          string
+	Name           string      `json:"name"`
+	List           []*Media    `json:"list"`
+	ListNonMedia   []*NonMedia `json:"-"`
+	ZipNonMediaURL string      `json:"-"`
+	dir            string
 }
 
 type DeoVR struct {
@@ -64,8 +67,9 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 	}
 
 	scene := &Scene{
-		Name: name,
-		dir:  directory,
+		Name:           name,
+		ZipNonMediaURL: fmt.Sprintf("http://%s/scene/%s.zip", host, name),
+		dir:            directory,
 	}
 
 	if err := filepath.Walk(dirAbs, func(path string, info os.FileInfo, err error) error {
@@ -276,4 +280,30 @@ func (d *DeoVR) GetThumbnailPath(sceneName string, fileName string) (string, err
 		return "", err
 	}
 	return f, nil
+}
+
+func (s *Scene) WriteNonMediaZip(w io.Writer) error {
+	z := zip.NewWriter(w)
+
+	for _, m := range s.ListNonMedia {
+		if err := func() error {
+			fp, err := os.Open(filepath.Join(s.dir, m.Title))
+			if err != nil {
+				return err
+			}
+			defer fp.Close()
+
+			f, err := z.Create(m.Title)
+			if err != nil {
+				return err
+			}
+
+			_, err = io.Copy(f, fp)
+			return err
+		}(); err != nil {
+			return err
+		}
+	}
+
+	return z.Close()
 }

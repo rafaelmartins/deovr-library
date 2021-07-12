@@ -92,7 +92,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 		if !(isVideo || isImage) {
 			nm := &NonMedia{
 				Title: fileName,
-				Path:  fmt.Sprintf("http://%s/media/%s/%s", host, name, fileName),
+				Path:  fmt.Sprintf("http://%s/file/%s/%s", host, name, fileName),
 			}
 			scene.ListNonMedia = append(scene.ListNonMedia, nm)
 			return nil
@@ -125,7 +125,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			image := &Media{
 				Title:        fileName,
 				ThumbnailURL: fmt.Sprintf("http://%s/thumb/%s/%s", host, name, fileName),
-				Path:         fmt.Sprintf("http://%s/media/%s/%s", host, name, fileName),
+				Path:         fmt.Sprintf("http://%s/file/%s/%s", host, name, fileName),
 			}
 			scene.List = append(scene.List, image)
 			return nil
@@ -196,7 +196,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 							Resolution: videoData.Height,
 							Height:     videoData.Height,
 							Width:      videoData.Width,
-							URL:        fmt.Sprintf("http://%s/media/%s/%s", host, name, fileName),
+							URL:        fmt.Sprintf("http://%s/file/%s/%s", host, name, fileName),
 						},
 					},
 				},

@@ -58,7 +58,7 @@ func deoVRHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func mediaHandler(w http.ResponseWriter, r *http.Request) {
+func fileHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if f, err := data.GetMediaPath(vars["scene"], vars["file"]); err != nil {
 		http.NotFound(w, r)
@@ -117,7 +117,7 @@ func main() {
 	r.HandleFunc("/deovr", deoVRHandler)
 	r.HandleFunc("/scene/{scene}.zip", zipHandler)
 	r.HandleFunc("/scene/{scene}", sceneHandler)
-	r.HandleFunc("/media/{scene}/{file}", mediaHandler)
+	r.HandleFunc("/file/{scene}/{file}", fileHandler)
 	r.HandleFunc("/thumb/{scene}/{file}", thumbHandler)
 
 	fmt.Fprintf(os.Stderr, "\n * Running on http://%s/\n\n", os.Args[1])

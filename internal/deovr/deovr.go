@@ -90,6 +90,8 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 		isVideo := strings.HasPrefix(mtype, "video/")
 		isImage := strings.HasPrefix(mtype, "image/")
 		if !(isVideo || isImage) {
+			log.Printf("[%s] Processing non-media: %s", scene.Name, path)
+
 			nm := &NonMedia{
 				Title: fileName,
 				Path:  fmt.Sprintf("http://%s/file/%s/%s", host, name, fileName),

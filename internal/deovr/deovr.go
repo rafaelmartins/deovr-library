@@ -91,7 +91,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 					return err
 				}
 
-				path, err = filepath.Abs(path)
+				path, err = filepath.Abs(filepath.Join(dirAbs, path))
 				if err != nil {
 					return err
 				}
@@ -307,7 +307,10 @@ func (d *DeoVR) GetThumbnailPath(sceneName string, fileName string) (string, err
 	dir := d.getSceneDirectory(sceneName)
 	f := filepath.Join(dir, strings.TrimSuffix(fileName, ".png"))
 	if fn, err := os.Readlink(f); err == nil {
-		f = fn
+		f, err = filepath.Abs(filepath.Join(dir, fn))
+		if err != nil {
+			return "", err
+		}
 	}
 
 	f = filepath.Join(filepath.Dir(f), ".deovr", fileName)

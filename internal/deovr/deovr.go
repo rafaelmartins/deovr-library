@@ -82,7 +82,29 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			return filepath.SkipDir
 		}
 
-		if !info.Mode().IsRegular() {
+		isRegular := info.Mode().IsRegular()
+		if !isRegular {
+			if info.Mode()&os.ModeSymlink != 0 {
+
+				path, err = os.Readlink(path)
+				if err != nil {
+					return err
+				}
+
+				path, err = filepath.Abs(path)
+				if err != nil {
+					return err
+				}
+
+				info, err = os.Stat(path)
+				if err != nil {
+					return err
+				}
+
+				isRegular = info.Mode().IsRegular()
+			}
+		}
+		if !isRegular {
 			return nil
 		}
 

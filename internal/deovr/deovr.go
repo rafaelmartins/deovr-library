@@ -300,12 +300,13 @@ func (d *DeoVR) GetMediaPath(sceneName string, fileName string) (string, error) 
 }
 
 func (d *DeoVR) GetThumbnailPath(sceneName string, fileName string) (string, error) {
-	if !strings.HasSuffix(fileName, ".png") {
-		return "", os.ErrNotExist
+	dir := d.getSceneDirectory(sceneName)
+	f := filepath.Join(dir, fileName)
+	if _, err := os.Stat(f); err == nil {
+		return f, nil
 	}
 
-	dir := d.getSceneDirectory(sceneName)
-	f := filepath.Join(dir, strings.TrimSuffix(fileName, ".png"))
+	f = filepath.Join(dir, strings.TrimSuffix(fileName, ".png"))
 	if fn, err := os.Readlink(f); err == nil {
 		f, err = filepath.Abs(filepath.Join(dir, fn))
 		if err != nil {

@@ -69,7 +69,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 
 	scene := &Scene{
 		Name:           name,
-		ZipNonMediaURL: fmt.Sprintf("http://%s/scene/%s.zip", host, name),
+		ZipNonMediaURL: fmt.Sprintf("%s/scene/%s.zip", host, name),
 		dir:            directory,
 	}
 
@@ -117,7 +117,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 
 			nm := &NonMedia{
 				Title: fileName,
-				Path:  fmt.Sprintf("http://%s/file/%s/%s", host, name, fileName),
+				Path:  fmt.Sprintf("%s/file/%s/%s", host, name, fileName),
 			}
 			scene.ListNonMedia = append(scene.ListNonMedia, nm)
 			return nil
@@ -149,8 +149,8 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 
 			image := &Media{
 				Title:        fileName,
-				ThumbnailURL: fmt.Sprintf("http://%s/thumb/%s/%s", host, name, fileName),
-				Path:         fmt.Sprintf("http://%s/file/%s/%s", host, name, fileName),
+				ThumbnailURL: fmt.Sprintf("%s/thumb/%s/%s", host, name, fileName),
+				Path:         fmt.Sprintf("%s/file/%s/%s", host, name, fileName),
 			}
 			scene.List = append(scene.List, image)
 			return nil
@@ -212,7 +212,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 			Title:        fileName,
 			FPS:          videoData.FramesPerSecond,
 			VideoLength:  videoData.Duration,
-			ThumbnailURL: fmt.Sprintf("http://%s/thumb/%s/%s.png", host, name, fileName),
+			ThumbnailURL: fmt.Sprintf("%s/thumb/%s/%s.png", host, name, fileName),
 			Encodings: []*Encoding{
 				{
 					Name: videoData.CodecName,
@@ -221,7 +221,7 @@ func (d *DeoVR) LoadScene(name string, directory string, host string) error {
 							Resolution: videoData.Height,
 							Height:     videoData.Height,
 							Width:      videoData.Width,
-							URL:        fmt.Sprintf("http://%s/file/%s/%s", host, name, fileName),
+							URL:        fmt.Sprintf("%s/file/%s/%s", host, name, fileName),
 						},
 					},
 				},

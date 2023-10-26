@@ -3,13 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/rafaelmartins/deovr-library/internal/config"
 	"github.com/rafaelmartins/deovr-library/internal/deovr"
 	"github.com/rafaelmartins/deovr-library/internal/gallery"
 )
@@ -76,39 +76,24 @@ func thumbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func usage() {
-	fmt.Fprintf(os.Stderr, "usage: deovr-library hostname:port label=directory [label=directory ...]\n")
-	os.Exit(1)
+func check(err any) {
+	if err != nil {
+		log.Fatal("error: ", err)
+	}
 }
 
 func main() {
-	if len(os.Args) < 3 {
-		usage()
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: deovr-library CONFIG_FILE\n")
+		os.Exit(1)
 	}
 
-	addr := os.Args[1]
-	pieces := strings.Split(addr, ":")
-	if pieces[0] == "" {
-		fmt.Fprintf(os.Stderr, "Error: hostname required for URL generation\n\n")
-		usage()
-	}
+	cfg, err := config.Load(os.Args[1])
+	check(err)
 
-	if len(pieces) == 1 {
-		addr += ":80"
-	} else if _, err := strconv.Atoi(pieces[1]); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: port must be an integer\n\n")
-		usage()
-	}
-
-	for _, dir := range os.Args[2:] {
-		p := strings.SplitN(dir, "=", 2)
-		if len(p) != 2 {
-			fmt.Fprintf(os.Stderr, "Error: missing name for directory: %s\n\n", dir)
-			usage()
-		}
-		if err := data.LoadScene(p[0], p[1], os.Args[1]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: failed to load scene: %s\n\n", err)
-			usage()
+	for _, scene := range cfg.Scenes {
+		if err := data.LoadScene(scene.Identifier, scene.Path, cfg.BaseURL); err != nil {
+			check(fmt.Errorf("failed to load scene: %s", err))
 		}
 	}
 
@@ -120,9 +105,6 @@ func main() {
 	r.HandleFunc("/file/{scene}/{file}", fileHandler)
 	r.HandleFunc("/thumb/{scene}/{file}", thumbHandler)
 
-	fmt.Fprintf(os.Stderr, "\n * Running on http://%s/\n\n", os.Args[1])
-
-	if err := http.ListenAndServe(addr, handlers.LoggingHandler(os.Stderr, r)); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-	}
+	fmt.Fprintf(os.Stderr, "\n * Running on %s\n\n", cfg.BaseURL)
+	check(http.ListenAndServe(cfg.Addr, handlers.LoggingHandler(os.Stderr, r)))
 }
